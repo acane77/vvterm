@@ -8,8 +8,7 @@ struct SettingsRouteCatalogTests {
     @Test("Catalog follows the approved grouped order")
     func approvedGroupedOrder() {
         #expect(SettingsRoute.defaultRoute == .appearanceAndLanguage)
-        #expect(SettingsRoute.defaultRoute != .pro)
-        #expect(SettingsRouteCatalog.leadingRoutes == [.pro])
+        #expect(SettingsRouteCatalog.leadingRoutes.isEmpty)
         #expect(SettingsRouteCatalog.groups == [
             .general,
             .terminal,

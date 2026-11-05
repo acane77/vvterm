@@ -558,11 +558,14 @@ extension View {
 struct ProUpgradePresentationModifier: ViewModifier {
     @Binding var isPresented: Bool
     let source: PaywallSource
-    @EnvironmentObject var storeManager: StoreManager
-    @EnvironmentObject var serverManager: ServerManager
 
     func body(content: Content) -> some View {
-        platformBody(content: content)
+        content
+            .onChange(of: isPresented) { presented in
+                if presented {
+                    isPresented = false
+                }
+            }
     }
 }
 

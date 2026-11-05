@@ -68,9 +68,9 @@ final class StoreManager: ObservableObject {
         entitlementSnapshot.accessState
     }
 
-    /// Do not enforce Free limits before StoreKit resolves entitlements.
+    /// Free-tier limits stay in feature policies. This build does not enforce them.
     var allowsProFeatures: Bool {
-        accessState != .free
+        true
     }
 
     var isLifetime: Bool {

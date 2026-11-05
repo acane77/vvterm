@@ -18,7 +18,7 @@ final class TerminalFloatingControlSettingsUITests: XCTestCase {
             "vvterm.settings.floatingInputControl.style.radial"
         ]
         XCTAssertTrue(radial.waitForExistence(timeout: 5))
-        XCTAssertTrue(radial.label.contains("Pro"))
+        XCTAssertFalse(radial.label.contains("Pro"))
     }
 
     @MainActor
@@ -33,8 +33,8 @@ final class TerminalFloatingControlSettingsUITests: XCTestCase {
         XCTAssertTrue(radial.waitForExistence(timeout: 5))
         radial.tap()
 
-        XCTAssertTrue(app.alerts["Floating Input Control"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["Upgrade to Pro"].exists)
+        XCTAssertFalse(app.alerts["Floating Input Control"].waitForExistence(timeout: 1))
+        XCTAssertFalse(app.buttons["Upgrade to Pro"].exists)
     }
 
     @MainActor

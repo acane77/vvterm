@@ -11,7 +11,7 @@ final class CustomFontLibraryUITests: XCTestCase {
         let app = launchApp()
         defer { app.terminate() }
 
-        openTerminalAppearance(in: app, waitForFreePlan: true)
+        openTerminalAppearance(in: app)
 
         let fontSize = app.sliders["vvterm.settings.appearance.fontSize"]
         let cjkFont = app.descendants(matching: .any)[
@@ -37,29 +37,8 @@ final class CustomFontLibraryUITests: XCTestCase {
         XCTAssertTrue(importFont.waitForExistence(timeout: 5))
         importFont.tap()
 
-        let proAlert = app.alerts["Custom Fonts"]
-        XCTAssertTrue(proAlert.waitForExistence(timeout: 5))
-        let upgrade = proAlert.buttons["Upgrade to Pro"]
-        XCTAssertTrue(upgrade.exists)
-        upgrade.tap()
-
-        let comparisonTexts = app.staticTexts.matching(
-            identifier: "vvterm.pro.comparison"
-        )
-        let customActionsBenefit = comparisonTexts.matching(
-            NSPredicate(format: "label == %@", "Custom actions")
-        ).firstMatch
-        let customFontsBenefit = comparisonTexts.matching(
-            NSPredicate(format: "label == %@", "Custom Fonts")
-        ).firstMatch
-        let cjkBenefit = comparisonTexts.matching(
-            NSPredicate(format: "label == %@", "CJK Font")
-        ).firstMatch
-        XCTAssertTrue(customActionsBenefit.waitForExistence(timeout: 5))
-        XCTAssertTrue(customFontsBenefit.exists)
-        XCTAssertTrue(cjkBenefit.exists)
-        XCTAssertLessThan(customActionsBenefit.frame.minY, customFontsBenefit.frame.minY)
-        XCTAssertLessThan(customFontsBenefit.frame.minY, cjkBenefit.frame.minY)
+        XCTAssertFalse(app.alerts["Custom Fonts"].waitForExistence(timeout: 1))
+        XCTAssertFalse(app.buttons["Upgrade to Pro"].exists)
     }
 
     @MainActor
@@ -92,7 +71,7 @@ final class CustomFontLibraryUITests: XCTestCase {
         let app = launchApp()
         defer { app.terminate() }
 
-        openTerminalAppearance(in: app, waitForFreePlan: true)
+        openTerminalAppearance(in: app)
 
         let cjkFont = app.buttons["vvterm.settings.appearance.cjkFont"]
         XCTAssertTrue(cjkFont.waitForExistence(timeout: 5))
@@ -103,9 +82,7 @@ final class CustomFontLibraryUITests: XCTestCase {
         let proOption = app.buttons
             .matching(NSPredicate(format: "label CONTAINS[c] %@", "(Pro)"))
             .firstMatch
-        XCTAssertTrue(proOption.waitForExistence(timeout: 5))
-        XCTAssertNotEqual(proOption.label, "(Pro)")
-        proOption.tap()
+        XCTAssertFalse(proOption.waitForExistence(timeout: 1))
         XCTAssertEqual(cjkFont.label, initialSelection)
     }
 
@@ -127,24 +104,10 @@ final class CustomFontLibraryUITests: XCTestCase {
     }
 
     @MainActor
-    private func openTerminalAppearance(
-        in app: XCUIApplication,
-        waitForFreePlan: Bool = false
-    ) {
+    private func openTerminalAppearance(in app: XCUIApplication) {
         let settings = app.buttons["vvterm.serverList.settings"]
         XCTAssertTrue(settings.waitForExistence(timeout: 10))
         settings.tap()
-
-        if waitForFreePlan {
-            let proRoute = app.buttons["vvterm.settings.route.pro"]
-            XCTAssertTrue(proRoute.waitForExistence(timeout: 8))
-            let freePlan = NSPredicate(format: "label CONTAINS[c] %@", "FREE")
-            let expectation = XCTNSPredicateExpectation(
-                predicate: freePlan,
-                object: proRoute
-            )
-            XCTAssertEqual(XCTWaiter.wait(for: [expectation], timeout: 10), .completed)
-        }
 
         let terminalAppearance = app.buttons["vvterm.settings.route.terminalAppearance"]
         XCTAssertTrue(terminalAppearance.waitForExistence(timeout: 8))

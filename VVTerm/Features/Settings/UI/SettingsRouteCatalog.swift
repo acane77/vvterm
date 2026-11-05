@@ -23,7 +23,6 @@ nonisolated enum SettingsGroup: String, CaseIterable, Hashable, Identifiable, Se
 }
 
 nonisolated enum SettingsRoute: String, CaseIterable, Hashable, Identifiable, Sendable {
-    case pro
     case appearanceAndLanguage
     case navigationAndStats
     case terminalAppearance
@@ -43,8 +42,6 @@ nonisolated enum SettingsRoute: String, CaseIterable, Hashable, Identifiable, Se
 
     var group: SettingsGroup? {
         switch self {
-        case .pro:
-            nil
         case .appearanceAndLanguage, .navigationAndStats:
             .general
         case .terminalAppearance, .keyboardAndInput, .transcription, .clipboardAndPaste:
@@ -60,8 +57,6 @@ nonisolated enum SettingsRoute: String, CaseIterable, Hashable, Identifiable, Se
 
     var title: String {
         switch self {
-        case .pro:
-            String(localized: "VVTerm Pro")
         case .appearanceAndLanguage:
             String(localized: "Appearance & Language")
         case .navigationAndStats:
@@ -91,8 +86,6 @@ nonisolated enum SettingsRoute: String, CaseIterable, Hashable, Identifiable, Se
 
     var icon: String {
         switch self {
-        case .pro:
-            "sparkles"
         case .appearanceAndLanguage:
             "paintbrush"
         case .navigationAndStats:
@@ -122,8 +115,6 @@ nonisolated enum SettingsRoute: String, CaseIterable, Hashable, Identifiable, Se
 
     var searchKeywords: [String] {
         switch self {
-        case .pro:
-            ["subscription", "upgrade", "purchase", "billing", "restore", "plan"]
         case .appearanceAndLanguage:
             ["language", "system", "light", "dark", "theme", "color scheme"]
         case .navigationAndStats:
@@ -173,18 +164,6 @@ nonisolated enum SettingsRoute: String, CaseIterable, Hashable, Identifiable, Se
 
     var searchLocalizationKeys: [String] {
         switch self {
-        case .pro:
-            [
-                "VVTerm Pro",
-                "Free Tier",
-                "Pro Monthly",
-                "Pro Yearly",
-                "Pro Lifetime",
-                "Manage Subscription",
-                "Restore Purchases",
-                "Unlimited",
-                "Included",
-            ]
         case .appearanceAndLanguage:
             ["Appearance & Language", "Language", "System", "Light", "Dark"]
         case .navigationAndStats:
@@ -249,7 +228,7 @@ nonisolated enum SettingsRoute: String, CaseIterable, Hashable, Identifiable, Se
 }
 
 nonisolated enum SettingsRouteCatalog {
-    static let leadingRoutes: [SettingsRoute] = [.pro]
+    static let leadingRoutes: [SettingsRoute] = []
     static let groups = SettingsGroup.allCases
     static let trailingRoutes: [SettingsRoute] = [.aboutAndSupport]
 

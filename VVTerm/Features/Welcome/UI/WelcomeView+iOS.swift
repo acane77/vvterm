@@ -14,7 +14,6 @@ extension WelcomeView {
 private struct WelcomeContent: View {
     @Binding var hasSeenWelcome: Bool
     let onCompleted: () -> Void
-    @State private var showingProUpgrade = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -100,20 +99,10 @@ private struct WelcomeContent: View {
                                 .fill(Color.accentColor)
                         )
                 }
-
-                Button {
-                    showingProUpgrade = true
-                } label: {
-                    Text("Explore Pro")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 24)
             .padding(.top, 8)
-            .proUpgradePresentation(isPresented: $showingProUpgrade, source: .welcome)
         }
     }
 }

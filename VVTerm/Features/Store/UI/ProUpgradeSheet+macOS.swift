@@ -51,17 +51,6 @@ extension ProUpgradeSheet {
     }
 }
 
-extension ProUpgradePresentationModifier {
-    func platformBody(content: Content) -> some View {
-        content.modifier(ProUpgradeWindowPresentationHost(
-            isPresented: $isPresented,
-            source: source,
-            storeManager: storeManager,
-            serverManager: serverManager
-        ))
-    }
-}
-
 private struct ProUpgradeWindowPresentationHost: ViewModifier {
     @Binding var isPresented: Bool
     let source: PaywallSource

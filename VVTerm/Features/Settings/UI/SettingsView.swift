@@ -11,7 +11,6 @@ struct SettingsView: View {
     var selectedRouteRaw = SettingsRoute.defaultRoute.rawValue
     @State var searchText = ""
 
-    @EnvironmentObject var storeManager: StoreManager
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
@@ -43,8 +42,6 @@ struct SettingsView: View {
     @ViewBuilder
     func destination(for route: SettingsRoute) -> some View {
         switch route {
-        case .pro:
-            ProSettingsView()
         case .appearanceAndLanguage:
             AppearanceLanguageSettingsView()
         case .navigationAndStats:
@@ -80,27 +77,8 @@ struct SettingsView: View {
 
     @ViewBuilder
     func routeLabel(for route: SettingsRoute) -> some View {
-        HStack(spacing: 10) {
-            Label(route.title, systemImage: route.icon)
-            Spacer(minLength: 8)
-            if route == .pro {
-                Text(storeStatusLabel)
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(storeManager.accessState == .pro ? .green : .secondary)
-            }
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("vvterm.settings.route.\(route.rawValue)")
-    }
-
-    var storeStatusLabel: String {
-        switch storeManager.accessState {
-        case .checking:
-            String(localized: "Checking...")
-        case .free:
-            String(localized: "FREE_PLAN")
-        case .pro:
-            String(localized: "PRO")
-        }
+        Label(route.title, systemImage: route.icon)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("vvterm.settings.route.\(route.rawValue)")
     }
 }

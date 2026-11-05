@@ -25,7 +25,6 @@ struct ServerSidebarView: View {
     @State private var showingWorkspaceSwitcher = false
     @State private var localDiscoveryPresentation: LocalDeviceDiscoveryPresentation?
     @State private var showingSupport = false
-    @State private var showingProUpgrade = false
     @State private var showingServerSearch = false
     @State private var showingEnvironmentFilters = false
     @State private var showingCreateEnvironment = false
@@ -232,11 +231,6 @@ struct ServerSidebarView: View {
                 }
             }
 
-            // Support VVTerm (only when not Pro)
-            if !storeManager.allowsProFeatures {
-                supportBanner
-            }
-
             // Footer buttons
             footerButtons
         }
@@ -308,7 +302,6 @@ struct ServerSidebarView: View {
             SupportSheet()
                 .adaptiveSoftScrollEdges()
         }
-        .proUpgradePresentation(isPresented: $showingProUpgrade, source: .sidebarBanner)
         .sheet(isPresented: $showingCreateEnvironment) {
             if let workspace = selectedWorkspace {
                 EnvironmentFormSheet(
@@ -810,33 +803,6 @@ struct ServerSidebarView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity)
-    }
-
-    // MARK: - Support Banner
-
-    private var supportBanner: some View {
-        Button {
-            showingProUpgrade = true
-        } label: {
-            HStack(spacing: 6) {
-                Image(systemName: "sparkles")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.orange)
-                Text("Upgrade to Pro")
-                    .font(.subheadline)
-                    .foregroundStyle(.primary)
-                Text(verbatim: "\u{2022}")
-                    .font(.subheadline)
-                    .foregroundStyle(.tertiary)
-                Text("Support VVTerm")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
-        }
-        .buttonStyle(.plain)
-        .background(Color.primary.opacity(0.08))
     }
 
     // MARK: - Footer Buttons

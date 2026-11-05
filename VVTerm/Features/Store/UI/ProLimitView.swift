@@ -173,20 +173,14 @@ struct ProFeatureAlert: ViewModifier {
     let message: String
     let source: PaywallSource
     @Binding var isPresented: Bool
-    @State private var showUpgrade = false
 
     func body(content: Content) -> some View {
         content
-            .alert(title, isPresented: $isPresented) {
-                Button("Upgrade to Pro") {
-                    showUpgrade = true
+            .onChange(of: isPresented) { presented in
+                if presented {
+                    isPresented = false
                 }
-                .keyboardShortcut(.defaultAction)
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text(message)
             }
-            .proUpgradePresentation(isPresented: $showUpgrade, source: source)
     }
 }
 

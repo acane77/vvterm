@@ -1,4 +1,5 @@
 #if os(iOS)
+import StoreKit
 import SwiftUI
 import UIKit
 
@@ -63,16 +64,6 @@ extension ProUpgradeSheet {
     }
 }
 
-extension ProUpgradePresentationModifier {
-    func platformBody(content: Content) -> some View {
-        content
-            .sheet(isPresented: $isPresented) {
-                ProUpgradeSheet(source: source)
-                    .adaptiveSoftScrollEdges()
-            }
-    }
-}
-
 var paywallTableGridColor: Color {
     Color.primary.opacity(0.10)
 }
@@ -83,5 +74,22 @@ var paywallCardFillColor: Color {
 
 var paywallCardBorderColor: Color {
     Color.primary.opacity(0.10)
+}
+
+extension View {
+    @ViewBuilder
+    func manageSubscriptionsSheetCompat(
+        isPresented: Binding<Bool>,
+        subscriptionGroupID: String
+    ) -> some View {
+        if #available(iOS 17.0, *) {
+            manageSubscriptionsSheet(
+                isPresented: isPresented,
+                subscriptionGroupID: subscriptionGroupID
+            )
+        } else {
+            self
+        }
+    }
 }
 #endif

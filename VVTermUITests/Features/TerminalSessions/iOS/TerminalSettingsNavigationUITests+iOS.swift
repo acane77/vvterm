@@ -485,7 +485,7 @@ final class TerminalSettingsNavigationUITests: TerminalReconnectUITestCase {
     }
 
     @MainActor
-    func testProSettingsUsesOneStatusHero() throws {
+    func testSettingsDoesNotOfferProSubscription() throws {
         let app = XCUIApplication()
         app.terminate()
         app.launchArguments = [
@@ -504,21 +504,10 @@ final class TerminalSettingsNavigationUITests: TerminalReconnectUITestCase {
         XCTAssertTrue(settings.waitForExistence(timeout: 10))
         settings.tap()
 
-        let proRoute = app.buttons["vvterm.settings.route.pro"]
-        XCTAssertTrue(proRoute.waitForExistence(timeout: 5))
-        proRoute.tap()
-
-        XCTAssertTrue(
-            app.descendants(matching: .any)["vvterm.settings.page.pro"]
-                .waitForExistence(timeout: 5)
-        )
-        XCTAssertTrue(
-            app.descendants(matching: .any)["vvterm.settings.pro.statusHero"]
-                .waitForExistence(timeout: 5)
-        )
-        XCTAssertTrue(app.buttons["Restore Purchases"].exists)
-        XCTAssertFalse(app.staticTexts["Subscription"].exists)
-        XCTAssertFalse(app.staticTexts["Purchased"].exists)
+        XCTAssertTrue(app.buttons["vvterm.settings.route.appearanceAndLanguage"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["vvterm.settings.route.pro"].exists)
+        XCTAssertFalse(app.staticTexts["VVTerm Pro"].exists)
+        XCTAssertFalse(app.buttons["Restore Purchases"].exists)
     }
 
     @MainActor

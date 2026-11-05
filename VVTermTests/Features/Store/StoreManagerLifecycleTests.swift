@@ -414,7 +414,7 @@ final class StoreManagerLifecycleTests: XCTestCase {
         await Task.yield()
 
         XCTAssertEqual(manager.accessState, .free)
-        XCTAssertFalse(manager.allowsProFeatures)
+        XCTAssertTrue(manager.allowsProFeatures)
         XCTAssertEqual(effects, [.entitlementsUpdated(isPro: false)])
         manager.stop()
     }

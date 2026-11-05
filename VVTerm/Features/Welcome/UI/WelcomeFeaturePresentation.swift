@@ -51,7 +51,7 @@ enum WelcomeFeaturePresentationCatalog {
                 id: id,
                 icon: "macbook.and.iphone",
                 title: companionPlatformTitle,
-                description: "VVTerm is available on iPhone, iPad, and Mac. Pro purchases carry over with the same Apple ID.",
+                description: "VVTerm is available on iPhone, iPad, and Mac.",
                 color: .blue
             )
         case .iCloudSync:
