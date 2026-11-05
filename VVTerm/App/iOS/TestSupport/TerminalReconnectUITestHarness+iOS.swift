@@ -40,14 +40,12 @@ struct TerminalReconnectUITestHarness: View {
 
     private let tabManager: TerminalTabManager
     @ObservedObject private var serverManager: ServerManager
-    private let serverWakeCoordinator: ServerWakeCoordinator
     @ObservedObject private var engagementTracker: EngagementTracker
     private let statsDependencies: ServerStatsScreenDependencies
     private let terminalSecurityActions: TerminalSecurityActions
     private let serverFormDependencies: ServerFormDependencies
     private let voiceModelManagers: VoiceSettingsModelManagerOwner
     private let voiceInputRuntimeStore: VoiceInputRuntimeStore
-    private let makeLocalDiscoveryManager: LocalSSHDiscoveryManagerFactory
     private let analyticsOptOutAction = AnalyticsOptOutAction(emitAnalyticsDisabled: {})
     @StateObject private var fileTabs: RemoteFileTabManager
     @ObservedObject private var fileBrowser: RemoteFileBrowserStore
@@ -57,19 +55,16 @@ struct TerminalReconnectUITestHarness: View {
     init(
         tabManager: TerminalTabManager,
         serverManager: ServerManager,
-        serverWakeCoordinator: ServerWakeCoordinator,
         fileBrowser: RemoteFileBrowserStore,
         engagementTracker: EngagementTracker,
         statsDependencies: ServerStatsScreenDependencies,
         terminalSecurityActions: TerminalSecurityActions,
         serverFormDependencies: ServerFormDependencies,
         voiceModelManagers: VoiceSettingsModelManagerOwner,
-        voiceInputRuntimeStore: VoiceInputRuntimeStore,
-        makeLocalDiscoveryManager: @escaping LocalSSHDiscoveryManagerFactory
+        voiceInputRuntimeStore: VoiceInputRuntimeStore
     ) {
         self.tabManager = tabManager
         _serverManager = ObservedObject(wrappedValue: serverManager)
-        self.serverWakeCoordinator = serverWakeCoordinator
         _fileBrowser = ObservedObject(wrappedValue: fileBrowser)
         _engagementTracker = ObservedObject(wrappedValue: engagementTracker)
         self.statsDependencies = statsDependencies
@@ -77,7 +72,6 @@ struct TerminalReconnectUITestHarness: View {
         self.serverFormDependencies = serverFormDependencies
         self.voiceModelManagers = voiceModelManagers
         self.voiceInputRuntimeStore = voiceInputRuntimeStore
-        self.makeLocalDiscoveryManager = makeLocalDiscoveryManager
         _fileTabs = StateObject(
             wrappedValue: RemoteFileTabManager(defaults: Self.fixtureDefaults)
         )
@@ -189,7 +183,6 @@ struct TerminalReconnectUITestHarness: View {
             if usesNavigationHarness {
                 iOSContentView(
                     serverManager: serverManager,
-                    serverWakeCoordinator: serverWakeCoordinator,
                     engagementTracker: engagementTracker,
                     tabManager: tabManager,
                     fileTabs: fileTabs,
@@ -199,7 +192,6 @@ struct TerminalReconnectUITestHarness: View {
                     serverFormDependencies: serverFormDependencies,
                     voiceModelManagers: voiceModelManagers,
                     voiceInputRuntimeStore: voiceInputRuntimeStore,
-                    makeLocalDiscoveryManager: makeLocalDiscoveryManager,
                     analyticsOptOutAction: analyticsOptOutAction
                 )
             } else {
@@ -216,7 +208,6 @@ struct TerminalReconnectUITestHarness: View {
                         voiceInputRuntimeStore: voiceInputRuntimeStore,
                         analyticsOptOutAction: analyticsOptOutAction,
                         route: .active(serverId: server.id),
-                        makeLocalDiscoveryManager: makeLocalDiscoveryManager,
                         onBack: {}
                     )
                 }

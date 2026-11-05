@@ -50,7 +50,6 @@ extension ConnectionTerminalContainer {
                         },
                         intent: intent,
                         dependencies: serverFormDependencies,
-                        makeLocalDiscoveryManager: makeLocalDiscoveryManager,
                         onSave: { _ in
                             serverFormIntent = nil
                         }

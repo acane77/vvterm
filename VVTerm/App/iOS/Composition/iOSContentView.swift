@@ -21,9 +21,7 @@ struct iOSContentView: View {
     let voiceModelManagers: VoiceSettingsModelManagerOwner
     let voiceInputRuntimeStore: VoiceInputRuntimeStore
     let analyticsOptOutAction: AnalyticsOptOutAction
-    private let makeLocalDiscoveryManager: LocalSSHDiscoveryManagerFactory
     @ObservedObject private var serverManager: ServerManager
-    private let serverWakeCoordinator: ServerWakeCoordinator
     @ObservedObject private var engagementTracker: EngagementTracker
     private let tabManager: TerminalTabManager
     @EnvironmentObject private var viewTabConfig: ViewTabConfigurationManager
@@ -39,7 +37,6 @@ struct iOSContentView: View {
 
     init(
         serverManager: ServerManager,
-        serverWakeCoordinator: ServerWakeCoordinator,
         engagementTracker: EngagementTracker,
         tabManager: TerminalTabManager,
         fileTabs: RemoteFileTabManager,
@@ -49,11 +46,9 @@ struct iOSContentView: View {
         serverFormDependencies: ServerFormDependencies,
         voiceModelManagers: VoiceSettingsModelManagerOwner,
         voiceInputRuntimeStore: VoiceInputRuntimeStore,
-        makeLocalDiscoveryManager: @escaping LocalSSHDiscoveryManagerFactory,
         analyticsOptOutAction: AnalyticsOptOutAction
     ) {
         _serverManager = ObservedObject(wrappedValue: serverManager)
-        self.serverWakeCoordinator = serverWakeCoordinator
         _engagementTracker = ObservedObject(wrappedValue: engagementTracker)
         self.tabManager = tabManager
         self.fileTabs = fileTabs
@@ -63,7 +58,6 @@ struct iOSContentView: View {
         self.serverFormDependencies = serverFormDependencies
         self.voiceModelManagers = voiceModelManagers
         self.voiceInputRuntimeStore = voiceInputRuntimeStore
-        self.makeLocalDiscoveryManager = makeLocalDiscoveryManager
         self.analyticsOptOutAction = analyticsOptOutAction
     }
 
@@ -97,9 +91,7 @@ struct iOSContentView: View {
             statsDependencies: statsDependencies,
             analyticsOptOutAction: analyticsOptOutAction,
             serverFormDependencies: serverFormDependencies,
-            serverWakeCoordinator: serverWakeCoordinator,
             voiceModelManagers: voiceModelManagers,
-            makeLocalDiscoveryManager: makeLocalDiscoveryManager,
             selectedWorkspace: $selectedWorkspace,
             selectedEnvironment: $selectedEnvironment,
             selectedServerID: terminalRoute?.serverId,
@@ -132,7 +124,6 @@ struct iOSContentView: View {
                 voiceInputRuntimeStore: voiceInputRuntimeStore,
                 analyticsOptOutAction: analyticsOptOutAction,
                 route: terminalRoute,
-                makeLocalDiscoveryManager: makeLocalDiscoveryManager,
                 onToggleSidebar: onToggleSidebar,
                 onSessionServerSelected: { self.terminalRoute = .active(serverId: $0.id) },
                 onBack: { self.terminalRoute = nil }
@@ -230,9 +221,7 @@ struct iOSContentView: View {
     }
 
     var body: some View {
-        ServerWakeNoticeHost(coordinator: serverWakeCoordinator) {
-            navigationContent
-        }
+        navigationContent
     }
 
     private func reconcileWorkspaceSelection(_ workspaces: [Workspace]) {

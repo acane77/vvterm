@@ -32,7 +32,6 @@ struct ServerTerminalRoute: View {
     let onToggleSidebar: (() -> Void)?
     let onSessionServerSelected: ((Server) -> Void)?
     let onBack: () -> Void
-    let makeLocalDiscoveryManager: LocalSSHDiscoveryManagerFactory
 
     private let keyboardCoordinator: TerminalKeyboardCoordinator
     @StateObject private var toolbarProjection: TerminalServerToolbarProjection
@@ -64,7 +63,6 @@ struct ServerTerminalRoute: View {
         voiceInputRuntimeStore: VoiceInputRuntimeStore,
         analyticsOptOutAction: AnalyticsOptOutAction,
         route: ServerTerminalNavigationRoute,
-        makeLocalDiscoveryManager: @escaping LocalSSHDiscoveryManagerFactory,
         onToggleSidebar: (() -> Void)? = nil,
         onSessionServerSelected: ((Server) -> Void)? = nil,
         onBack: @escaping () -> Void
@@ -80,7 +78,6 @@ struct ServerTerminalRoute: View {
         self.voiceInputRuntimeStore = voiceInputRuntimeStore
         self.analyticsOptOutAction = analyticsOptOutAction
         self.route = route
-        self.makeLocalDiscoveryManager = makeLocalDiscoveryManager
         self.onToggleSidebar = onToggleSidebar
         self.onSessionServerSelected = onSessionServerSelected
         self.onBack = onBack
@@ -260,7 +257,6 @@ struct ServerTerminalRoute: View {
                 fileTabManager: fileTabs,
                 serverManager: serverManager,
                 fileBrowser: fileBrowser,
-                makeLocalDiscoveryManager: makeLocalDiscoveryManager,
                 statsDependencies: statsDependencies,
                 terminalSecurityActions: terminalSecurityActions,
                 serverFormDependencies: serverFormDependencies,

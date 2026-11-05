@@ -11,7 +11,6 @@ struct AppComposition {
     let storeManager: StoreManager
     let appLockManager: AppLockManager
     let serverManager: ServerManager
-    let serverWakeCoordinator: ServerWakeCoordinator
     let engagementTracker: EngagementTracker
     let tabManager: TerminalTabManager
     let remoteFileBrowserStore: RemoteFileBrowserStore
@@ -34,7 +33,6 @@ struct AppComposition {
     let knownHostSettingsCoordinator: KnownHostSettingsCoordinator
     let onWelcomeCompleted: @MainActor () -> Void
     let statsRuntimeStore: ServerStatsRuntimeStore
-    let makeLocalDiscoveryManager: LocalSSHDiscoveryManagerFactory
     let serverFormDependencies: ServerFormDependencies
     let voiceModelManagers: VoiceSettingsModelManagerOwner
     let statsSecurityApprovalActions: ServerStatsSecurityApprovalActions
@@ -123,14 +121,6 @@ struct AppComposition {
             makeID: makeID
         )
         let cloudKitSyncCoordinator = cloudKitSync.coordinator
-        let makeLocalDiscoveryManager: LocalSSHDiscoveryManagerFactory = {
-            LocalSSHDiscoveryManager(
-                dependencies: .live(
-                    networkConnectionType: { networkMonitor.connectionType },
-                    makeScanID: makeID
-                )
-            )
-        }
         let serverDeletionTerminalCleanup = ServerDeletionTerminalCleanupRelay()
         let serverManager = ServerManager(
             dependencies: .live(
@@ -146,20 +136,6 @@ struct AppComposition {
                 },
                 defaultWorkspaceName: defaultWorkspaceName,
                 now: now,
-                makeID: makeID
-            )
-        )
-        let serverWakeCoordinator = ServerWakeCoordinator(
-            dependencies: ServerWakeDependencies(
-                sender: BSDWakeOnLANPacketSender(
-                    interfaceProvider: SystemWakeOnLANInterfaceProvider(),
-                    datagramSender: BSDWakeOnLANDatagramSender()
-                ),
-                macAddressResolver: SSHServerWakeOnLANMACAddressResolver(
-                    connectionOperations: connectionOperations
-                ),
-                mutations: serverManager,
-                credentials: keychainManager,
                 makeID: makeID
             )
         )
@@ -228,9 +204,7 @@ struct AppComposition {
             networkMonitor: networkMonitor,
             appLockManager: appLockManager,
             serverManager: serverManager,
-            prepareInitialConnection: { server in
-                serverWakeCoordinator.startAutomaticallyIfEnabled(for: server)
-            },
+            prepareInitialConnection: { _ in },
             engagementTracker: engagementTracker,
             analyticsTracker: analyticsTracker,
             liveActivityManager: liveActivityManager,
@@ -447,7 +421,6 @@ struct AppComposition {
         self.storeManager = storeManager
         self.appLockManager = appLockManager
         self.serverManager = serverManager
-        self.serverWakeCoordinator = serverWakeCoordinator
         self.engagementTracker = engagementTracker
         self.tabManager = tabManager
         self.remoteFileBrowserStore = remoteFileBrowserStore
@@ -470,7 +443,6 @@ struct AppComposition {
         self.knownHostSettingsCoordinator = knownHostSettingsCoordinator
         self.onWelcomeCompleted = onWelcomeCompleted
         self.statsRuntimeStore = statsRuntimeStore
-        self.makeLocalDiscoveryManager = makeLocalDiscoveryManager
         self.serverFormDependencies = serverFormDependencies
         self.voiceModelManagers = voiceModelManagers
         self.statsSecurityApprovalActions = statsSecurityApprovalActions

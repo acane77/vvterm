@@ -7,7 +7,6 @@ struct VVTermCommands: Commands {
     let settingsWindowPresenter: SettingsWindowPresenter
     @Environment(\.openWindow) private var openWindow
     @FocusedValue(\.serverViewTabActions) private var serverViewTabActions
-    @FocusedValue(\.openLocalSSHDiscovery) private var openLocalSSHDiscovery
     @FocusedValue(\.terminalSplitActions) private var terminalSplitActions
 
     var body: some Commands {
@@ -31,11 +30,6 @@ struct VVTermCommands: Commands {
             }
             .keyboardShortcut("t", modifiers: .command)
             .disabled(serverViewTabActions == nil)
-
-            Button(String(localized: "Discover Local Devices...")) {
-                openLocalSSHDiscovery?()
-            }
-            .disabled(openLocalSSHDiscovery == nil)
 
             Button("Close Tab") {
                 serverViewTabActions?.closeSelected()

@@ -5,7 +5,6 @@ import SwiftUI
 struct ServerSidebarView: View {
     let serverManager: ServerManager
     let serverFormDependencies: ServerFormDependencies
-    let makeLocalDiscoveryManager: LocalSSHDiscoveryManagerFactory
     let onOpenSettings: () -> Void
     @ObservedObject private var stateStore: ServerStateStore
     @ObservedObject private var workspaceSelectionStore: WorkspaceSelectionStore
@@ -17,13 +16,8 @@ struct ServerSidebarView: View {
     @EnvironmentObject private var viewTabConfig: ViewTabConfigurationManager
     private let tabManager: TerminalTabManager
     @ObservedObject private var terminalNavigation: TerminalSessionNavigationProjection
-    private let serverWakeCoordinator: ServerWakeCoordinator
-    #if os(macOS)
-    @EnvironmentObject private var commandBridge: MacShellCommandBridge
-    #endif
 
     @State private var showingWorkspaceSwitcher = false
-    @State private var localDiscoveryPresentation: LocalDeviceDiscoveryPresentation?
     @State private var showingSupport = false
     @State private var showingServerSearch = false
     @State private var showingEnvironmentFilters = false
@@ -36,23 +30,19 @@ struct ServerSidebarView: View {
     @State private var serverFormIntent: ServerFormIntent?
     @State private var serverToMove: Server?
     @State private var lockedServerAlert: Server?
-    @State private var queuedDiscoveryPrefill: ServerFormPrefill?
 
     init(
         serverManager: ServerManager,
         tabManager: TerminalTabManager,
         terminalNavigation: TerminalSessionNavigationProjection,
-        serverWakeCoordinator: ServerWakeCoordinator,
         serverFormDependencies: ServerFormDependencies,
         workspaceSelectionStore: WorkspaceSelectionStore,
-        makeLocalDiscoveryManager: @escaping LocalSSHDiscoveryManagerFactory,
         onOpenSettings: @escaping () -> Void,
         selectedWorkspace: Binding<Workspace?>,
         selectedServer: Binding<Server?>
     ) {
         self.serverManager = serverManager
         self.serverFormDependencies = serverFormDependencies
-        self.makeLocalDiscoveryManager = makeLocalDiscoveryManager
         self.onOpenSettings = onOpenSettings
         _stateStore = ObservedObject(wrappedValue: serverManager.stateStore)
         _workspaceSelectionStore = ObservedObject(
@@ -60,7 +50,6 @@ struct ServerSidebarView: View {
         )
         self.tabManager = tabManager
         _terminalNavigation = ObservedObject(wrappedValue: terminalNavigation)
-        self.serverWakeCoordinator = serverWakeCoordinator
         _selectedWorkspace = selectedWorkspace
         _selectedServer = selectedServer
     }
@@ -218,7 +207,6 @@ struct ServerSidebarView: View {
                                 onEdit: { serverFormIntent = .edit($0) },
                                 onMove: { serverToMove = $0 },
                                 onDuplicate: { serverFormIntent = .duplicate($0) },
-                                onWake: { startWake(for: $0) },
                                 onConnect: { connectToServer($0) },
                                 onLockedTap: { lockedServerAlert = server }
                             )
@@ -241,23 +229,12 @@ struct ServerSidebarView: View {
             )
             .adaptiveSoftScrollEdges()
         }
-        .sheet(item: $localDiscoveryPresentation, onDismiss: resumeDiscoveredServerCreation) { presentation in
-            LocalDeviceDiscoverySheet(manager: presentation.manager) { discoveredHost in
-                queuedDiscoveryPrefill = ServerFormPrefill(
-                    name: discoveredHost.displayName,
-                    host: discoveredHost.host,
-                    port: discoveredHost.port
-                )
-            }
-            .adaptiveSoftScrollEdges()
-        }
         .sheet(item: $serverFormIntent) { intent in
             ServerFormSheet(
                 serverManager: serverManager,
                 workspace: workspace(for: intent),
                 intent: intent,
                 dependencies: serverFormDependencies,
-                makeLocalDiscoveryManager: makeLocalDiscoveryManager,
                 onSave: { savedServer in
                     if let editedServer = intent.editedServer {
                         handleSavedServer(savedServer, originalServer: editedServer)
@@ -378,8 +355,6 @@ struct ServerSidebarView: View {
         )
         .onChange(of: selectedWorkspace?.id) { _ in
             reconcileEnvironmentFilters()
-            guard showingWorkspaceSwitcher else { return }
-            dismissWorkspacePickerForPendingPrefilledAddServerIfNeeded()
         }
         .onChange(of: stateStore.workspaces) { _ in
             reconcileEnvironmentFilters()
@@ -387,24 +362,6 @@ struct ServerSidebarView: View {
         .onAppear {
             reconcileEnvironmentFilters()
         }
-        .onChange(of: showingWorkspaceSwitcher) { isPresented in
-            guard !isPresented else { return }
-            resumePendingPrefilledAddServerIfNeeded()
-        }
-        #if os(macOS)
-        .focusedValue(\.openLocalSSHDiscovery, {
-            presentLocalDiscovery()
-        })
-        // The sidebar is hosted in its own NSHostingController, so the
-        // focusedValue above can't reach the scene Commands. Register the action
-        // on the shell command bridge too; ContentView republishes it.
-        .onAppear {
-            commandBridge.setLocalDiscovery(presentLocalDiscovery)
-        }
-        .onDisappear {
-            commandBridge.setLocalDiscovery(nil)
-        }
-        #endif
         .lockedItemAlert(
             .server,
             itemName: lockedServerAlert?.name ?? "",
@@ -413,18 +370,6 @@ struct ServerSidebarView: View {
                 set: { if !$0 { lockedServerAlert = nil } }
             )
         )
-    }
-
-    private func presentLocalDiscovery() {
-        guard localDiscoveryPresentation == nil else { return }
-        localDiscoveryPresentation = LocalDeviceDiscoveryPresentation(
-            makeManager: makeLocalDiscoveryManager
-        )
-    }
-
-    private func resumeDiscoveredServerCreation() {
-        guard let queued = queuedDiscoveryPrefill else { return }
-        presentAddServer(prefill: queued)
     }
 
     // MARK: - Server Controls (Filter + Search)
@@ -723,13 +668,6 @@ struct ServerSidebarView: View {
         }
     }
 
-    private func startWake(for server: Server) {
-        Task {
-            guard await appLockManager.ensureServerUnlocked(server) else { return }
-            serverWakeCoordinator.start(for: server)
-        }
-    }
-
     private func handleSavedServer(_ server: Server, originalServer: Server) {
         let movedAcrossWorkspaces = originalServer.workspaceId != server.workspaceId
 
@@ -846,14 +784,12 @@ struct ServerSidebarView: View {
         }
     }
 
-    private func presentAddServer(prefill: ServerFormPrefill? = nil) {
+    private func presentAddServer() {
         switch ServerCreationPresentationPolicy.initialStep(canAddServer: canAddServer) {
         case .createWorkspace:
-            queuedDiscoveryPrefill = prefill
             showingWorkspaceSwitcher = true
         case .createServer:
-            queuedDiscoveryPrefill = nil
-            serverFormIntent = .create(prefill: prefill)
+            serverFormIntent = .create(prefill: nil)
         }
     }
 
@@ -862,17 +798,4 @@ struct ServerSidebarView: View {
         return stateStore.workspace(withID: sourceServer.workspaceId)
     }
 
-    private func dismissWorkspacePickerForPendingPrefilledAddServerIfNeeded() {
-        guard queuedDiscoveryPrefill != nil, canAddServer else { return }
-        showingWorkspaceSwitcher = false
-    }
-
-    private func resumePendingPrefilledAddServerIfNeeded() {
-        guard ServerCreationPresentationPolicy.shouldResumePrefilledServer(
-            hasPrefill: queuedDiscoveryPrefill != nil,
-            canAddServer: canAddServer,
-            isPresentingServer: serverFormIntent != nil
-        ) else { return }
-        presentAddServer(prefill: queuedDiscoveryPrefill)
-    }
 }

@@ -19,7 +19,6 @@ struct VVTermApp: App {
         tabManager = composition.tabManager
         voiceInputRuntimeStore = composition.voiceInputRuntimeStore
         statsRuntimeStore = composition.statsRuntimeStore
-        makeLocalDiscoveryManager = composition.makeLocalDiscoveryManager
         serverFormDependencies = composition.serverFormDependencies
         voiceModelManagers = composition.voiceModelManagers
         statsSecurityApprovalActions = composition.statsSecurityApprovalActions
@@ -30,9 +29,6 @@ struct VVTermApp: App {
         _storeManager = StateObject(wrappedValue: composition.storeManager)
         _appLockManager = StateObject(wrappedValue: composition.appLockManager)
         _serverManager = StateObject(wrappedValue: composition.serverManager)
-        _serverWakeCoordinator = StateObject(
-            wrappedValue: composition.serverWakeCoordinator
-        )
         _engagementTracker = StateObject(wrappedValue: composition.engagementTracker)
         _remoteFileBrowserStore = StateObject(wrappedValue: composition.remoteFileBrowserStore)
         _terminalFontStore = StateObject(
@@ -103,7 +99,6 @@ struct VVTermApp: App {
     #endif
     @StateObject private var appLockManager: AppLockManager
     @StateObject private var serverManager: ServerManager
-    @StateObject private var serverWakeCoordinator: ServerWakeCoordinator
     @StateObject private var engagementTracker: EngagementTracker
     private let networkMonitor: NetworkMonitor
     private let tabManager: TerminalTabManager
@@ -129,7 +124,6 @@ struct VVTermApp: App {
     @StateObject private var knownHostSettingsCoordinator: KnownHostSettingsCoordinator
     private let onWelcomeCompleted: @MainActor () -> Void
     private let statsRuntimeStore: ServerStatsRuntimeStore
-    private let makeLocalDiscoveryManager: LocalSSHDiscoveryManagerFactory
     private let serverFormDependencies: ServerFormDependencies
     private let voiceModelManagers: VoiceSettingsModelManagerOwner
     private let statsSecurityApprovalActions: ServerStatsSecurityApprovalActions
@@ -270,8 +264,7 @@ struct VVTermApp: App {
         } else if usesServerDuplicateUITestHarness {
             ServerDuplicateUITestHarness(
                 serverManager: serverManager,
-                dependencies: serverFormDependencies,
-                makeLocalDiscoveryManager: makeLocalDiscoveryManager
+                dependencies: serverFormDependencies
             )
         } else if Foundation.ProcessInfo.processInfo.arguments.contains(
             "--vvterm-ui-test-mac-terminal-recovery-harness"
@@ -292,7 +285,6 @@ struct VVTermApp: App {
     private var macOSAppContent: some View {
         ContentView(
             serverManager: serverManager,
-            serverWakeCoordinator: serverWakeCoordinator,
             engagementTracker: engagementTracker,
             tabManager: tabManager,
             fileTabs: remoteFileTabManager,
@@ -302,7 +294,6 @@ struct VVTermApp: App {
             serverFormDependencies: serverFormDependencies,
             workspaceSelectionStore: workspaceSelectionStore,
             voiceInputRuntimeStore: voiceInputRuntimeStore,
-            makeLocalDiscoveryManager: makeLocalDiscoveryManager,
             onOpenSettings: { settingsWindowPresenter.show() }
         )
             .environmentObject(ghosttyApp)
@@ -347,8 +338,7 @@ struct VVTermApp: App {
         } else if usesServerDuplicateUITestHarness {
             ServerDuplicateUITestHarness(
                 serverManager: serverManager,
-                dependencies: serverFormDependencies,
-                makeLocalDiscoveryManager: makeLocalDiscoveryManager
+                dependencies: serverFormDependencies
             )
         } else if usesNoticePresentationUITestHarness {
             NoticePresentationUITestHarness()
@@ -373,15 +363,13 @@ struct VVTermApp: App {
             TerminalReconnectUITestHarness(
                 tabManager: tabManager,
                 serverManager: serverManager,
-                serverWakeCoordinator: serverWakeCoordinator,
                 fileBrowser: remoteFileBrowserStore,
                 engagementTracker: engagementTracker,
                 statsDependencies: statsDependencies,
                 terminalSecurityActions: terminalSecurityActions,
                 serverFormDependencies: serverFormDependencies,
                 voiceModelManagers: voiceModelManagers,
-                voiceInputRuntimeStore: voiceInputRuntimeStore,
-                makeLocalDiscoveryManager: makeLocalDiscoveryManager
+                voiceInputRuntimeStore: voiceInputRuntimeStore
             )
                 .environmentObject(ghosttyApp)
                 .environmentObject(terminalThemeManager)
@@ -413,7 +401,6 @@ struct VVTermApp: App {
     private var iOSAppContent: some View {
         iOSContentView(
             serverManager: serverManager,
-            serverWakeCoordinator: serverWakeCoordinator,
             engagementTracker: engagementTracker,
             tabManager: tabManager,
             fileTabs: remoteFileTabManager,
@@ -423,7 +410,6 @@ struct VVTermApp: App {
             serverFormDependencies: serverFormDependencies,
             voiceModelManagers: voiceModelManagers,
             voiceInputRuntimeStore: voiceInputRuntimeStore,
-            makeLocalDiscoveryManager: makeLocalDiscoveryManager,
             analyticsOptOutAction: analyticsOptOutAction
         )
             .environmentObject(ghosttyApp)

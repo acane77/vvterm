@@ -14,9 +14,7 @@ struct ServerListScreen: View {
     let statsDependencies: ServerStatsScreenDependencies
     let analyticsOptOutAction: AnalyticsOptOutAction
     let serverFormDependencies: ServerFormDependencies
-    let serverWakeCoordinator: ServerWakeCoordinator
     let voiceModelManagers: VoiceSettingsModelManagerOwner
-    let makeLocalDiscoveryManager: LocalSSHDiscoveryManagerFactory
     @Binding var selectedWorkspace: Workspace?
     @Binding var selectedEnvironment: ServerEnvironment?
     let selectedServerID: UUID?
@@ -48,9 +46,7 @@ struct ServerListScreen: View {
         statsDependencies: ServerStatsScreenDependencies,
         analyticsOptOutAction: AnalyticsOptOutAction,
         serverFormDependencies: ServerFormDependencies,
-        serverWakeCoordinator: ServerWakeCoordinator,
         voiceModelManagers: VoiceSettingsModelManagerOwner,
-        makeLocalDiscoveryManager: @escaping LocalSSHDiscoveryManagerFactory,
         selectedWorkspace: Binding<Workspace?>,
         selectedEnvironment: Binding<ServerEnvironment?>,
         selectedServerID: UUID? = nil,
@@ -65,9 +61,7 @@ struct ServerListScreen: View {
         self.statsDependencies = statsDependencies
         self.analyticsOptOutAction = analyticsOptOutAction
         self.serverFormDependencies = serverFormDependencies
-        self.serverWakeCoordinator = serverWakeCoordinator
         self.voiceModelManagers = voiceModelManagers
-        self.makeLocalDiscoveryManager = makeLocalDiscoveryManager
         self._selectedWorkspace = selectedWorkspace
         self._selectedEnvironment = selectedEnvironment
         self.selectedServerID = selectedServerID
@@ -218,7 +212,6 @@ struct ServerListScreen: View {
                     workspace: workspace(for: intent),
                     intent: intent,
                     dependencies: serverFormDependencies,
-                    makeLocalDiscoveryManager: makeLocalDiscoveryManager,
                     onSave: { savedServer in
                         if let editedServer = intent.editedServer {
                             handleSavedServer(savedServer, originalServer: editedServer)
@@ -412,7 +405,6 @@ struct ServerListScreen: View {
                         onEdit: { serverFormIntent = .edit(server) },
                         onMove: { serverToMove = server },
                         onDuplicate: { serverFormIntent = .duplicate(server) },
-                        onWake: { startWake(for: server) },
                         onLockedTap: { lockedServerAlert = server }
                     )
                     .accessibilityIdentifier(
@@ -508,13 +500,6 @@ struct ServerListScreen: View {
     private func workspace(for intent: ServerFormIntent) -> Workspace? {
         guard let sourceServer = intent.sourceServer else { return selectedWorkspace }
         return serverManager.workspaces.first { $0.id == sourceServer.workspaceId }
-    }
-
-    private func startWake(for server: Server) {
-        Task {
-            guard await appLockManager.ensureServerUnlocked(server) else { return }
-            serverWakeCoordinator.start(for: server)
-        }
     }
 
     private func server(for serverId: UUID) -> Server? {

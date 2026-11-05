@@ -25,10 +25,8 @@ struct ServerDuplicateUITestHarness: View {
 
     let serverManager: ServerManager
     let dependencies: ServerFormDependencies
-    let makeLocalDiscoveryManager: LocalSSHDiscoveryManagerFactory
 
     @State private var formIntent: ServerFormIntent?
-    @State private var wakeActionCount = 0
 
     private var workspace: Workspace? {
         serverManager.workspaces.first
@@ -62,13 +60,9 @@ struct ServerDuplicateUITestHarness: View {
                     onTap: {},
                     onEdit: { formIntent = .edit(sourceServer) },
                     onMove: {},
-                    onDuplicate: { formIntent = .duplicate(sourceServer) },
-                    onWake: { wakeActionCount += 1 }
+                    onDuplicate: { formIntent = .duplicate(sourceServer) }
                 )
                 .accessibilityIdentifier("vvterm.serverDuplicateTest.row")
-
-                Text("\(wakeActionCount)")
-                    .accessibilityIdentifier("vvterm.serverWakeTest.actionCount")
                 #else
                 Button {
                     formIntent = .duplicate(sourceServer)
@@ -111,7 +105,6 @@ struct ServerDuplicateUITestHarness: View {
             workspace: workspace,
             intent: intent,
             dependencies: automaticDetectionDependencies,
-            makeLocalDiscoveryManager: makeLocalDiscoveryManager,
             onSave: { _ in formIntent = nil }
         )
     }
@@ -120,7 +113,6 @@ struct ServerDuplicateUITestHarness: View {
         ServerFormDependencies(
             credentials: dependencies.credentials,
             connectionTester: AutomaticConnectionTester(),
-            wakeOnLANMACAddressResolver: dependencies.wakeOnLANMACAddressResolver,
             hostKeys: dependencies.hostKeys,
             remoteSessionBackends: dependencies.remoteSessionBackends,
             defaultRemoteSessionEnabled: dependencies.defaultRemoteSessionEnabled,

@@ -71,20 +71,5 @@ struct MacShellCommandBridgeTests {
         bridge.clear(ownerId: "current")
         #expect(bridge.activeServerId == nil)
     }
-
-    @Test
-    func localDiscoveryUsesTypedDispatcherState() {
-        let bridge = MacShellCommandBridge()
-        var openCount = 0
-
-        bridge.setLocalDiscovery { openCount += 1 }
-        #expect(bridge.snapshot.hasLocalDiscovery)
-        bridge.openLocalDiscovery?()
-        #expect(openCount == 1)
-
-        bridge.setLocalDiscovery(nil)
-        #expect(!bridge.snapshot.hasLocalDiscovery)
-        #expect(bridge.openLocalDiscovery == nil)
-    }
 }
 #endif

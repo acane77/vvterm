@@ -44,7 +44,6 @@ nonisolated struct ServerFormModel: Equatable, Sendable {
     nonisolated enum WakeOnLANSavePlan: Equatable, Sendable {
         case clearConfiguration
         case configured(WakeOnLANConfiguration)
-        case resolveAutomatically
     }
 
     nonisolated struct ConnectionSnapshot: Equatable, Sendable {
@@ -178,12 +177,10 @@ nonisolated struct ServerFormModel: Equatable, Sendable {
     }
 
     func wakeOnLANSavePlan(existingServer: Server?) -> WakeOnLANSavePlan {
-        if let existingServer,
-           Self.normalizedHost(existingServer.host) == Self.normalizedHost(host),
-           let configuration = existingServer.wakeOnLANConfiguration {
+        if let configuration = existingServer?.wakeOnLANConfiguration {
             return .configured(configuration)
         }
-        return autoWakeOnLANEnabled ? .resolveAutomatically : .clearConfiguration
+        return .clearConfiguration
     }
 
     mutating func applyPrefill(

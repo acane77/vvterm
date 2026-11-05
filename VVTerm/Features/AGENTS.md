@@ -13,7 +13,6 @@ Read scoped rules for the owners involved in the task:
 Other feature boundaries:
 
 - `ConnectionViews`: connection-view tab configuration types and state.
-- `LocalDiscovery`: discovery-specific behavior and UI.
 - `Security`: app lock and biometric flows; use Core Security for infrastructure.
 - `Settings`: settings presentation and settings screens; feature owners retain their state and workflows.
 - `Support`: support and contact UI.

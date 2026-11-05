@@ -44,7 +44,6 @@ nonisolated protocol ServerHostKeyRepository: Sendable {
 struct ServerFormDependencies {
     let credentials: any ServerCredentialRepository
     let connectionTester: any ServerConnectionTesting
-    let wakeOnLANMACAddressResolver: any WakeOnLANMACAddressResolving
     let hostKeys: any ServerHostKeyRepository
     let remoteSessionBackends: [RemoteSessionBackendMetadata]
     let defaultRemoteSessionEnabled: @MainActor () -> Bool
@@ -58,7 +57,6 @@ nonisolated enum ServerFormOperationFailure: Equatable, Sendable {
     case operation(message: String)
     case credentialLoad(message: String)
     case storedKeyLoad(message: String)
-    case wakeOnLANUnavailable
 }
 
 nonisolated enum ServerFormOperationPhase: Equatable, Sendable {
@@ -80,7 +78,6 @@ final class ServerFormOperationController: ObservableObject {
 
     private let credentialLoader: any ServerFormCredentialLoading
     private let connectionTester: any ServerConnectionTesting
-    private let wakeOnLANMACAddressResolver: any WakeOnLANMACAddressResolving
     private let hostKeys: any ServerHostKeyRepository
     private let saveUseCase: ServerSaveUseCase
     private let now: @Sendable () -> Date
@@ -92,7 +89,6 @@ final class ServerFormOperationController: ObservableObject {
     init(
         credentialLoader: any ServerFormCredentialLoading,
         connectionTester: any ServerConnectionTesting,
-        wakeOnLANMACAddressResolver: any WakeOnLANMACAddressResolving,
         hostKeys: any ServerHostKeyRepository,
         saveUseCase: ServerSaveUseCase,
         now: @escaping @Sendable () -> Date,
@@ -100,7 +96,6 @@ final class ServerFormOperationController: ObservableObject {
     ) {
         self.credentialLoader = credentialLoader
         self.connectionTester = connectionTester
-        self.wakeOnLANMACAddressResolver = wakeOnLANMACAddressResolver
         self.hostKeys = hostKeys
         self.saveUseCase = saveUseCase
         self.now = now
@@ -329,7 +324,6 @@ final class ServerFormOperationController: ObservableObject {
         phase = .saving(id: operationID)
         let useCase = saveUseCase
         let connectionTester = connectionTester
-        let wakeOnLANMACAddressResolver = wakeOnLANMACAddressResolver
 
         saveTask = Task { [weak self] in
             guard await authorize() else {
@@ -351,32 +345,13 @@ final class ServerFormOperationController: ObservableObject {
                 }
             }
 
-            do {
-                let configuration: WakeOnLANConfiguration?
-                switch wakeOnLANPlan {
-                case .clearConfiguration:
-                    configuration = nil
-                case .configured(let existingConfiguration):
-                    configuration = existingConfiguration
-                case .resolveAutomatically:
-                    let macAddress = try await wakeOnLANMACAddressResolver
-                        .resolveMACAddress(
-                            for: mutation.server,
-                            credentials: credentials
-                        )
-                    configuration = WakeOnLANConfiguration(
-                        macAddress: macAddress
-                    )
-                }
-                preparedServer.wakeOnLANConfiguration = configuration
-            } catch is CancellationError {
-                return
-            } catch {
-                guard self?.isCurrentSave(operationID) == true else { return }
-                self?.saveTask = nil
-                self?.phase = .failed(.wakeOnLANUnavailable)
-                return
+            let configuration: WakeOnLANConfiguration? = switch wakeOnLANPlan {
+            case .clearConfiguration:
+                nil
+            case .configured(let existingConfiguration):
+                existingConfiguration
             }
+            preparedServer.wakeOnLANConfiguration = configuration
             guard !Task.isCancelled else { return }
             guard self?.isCurrentSave(operationID) == true else { return }
             let preparedMutation: ServerMutation = switch mutation {

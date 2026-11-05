@@ -93,12 +93,7 @@
 
     <!-- Local network usage -->
     <key>NSLocalNetworkUsageDescription</key>
-    <string>VVTerm uses your local network to find, wake, and connect to SSH servers.</string>
-    <key>NSBonjourServices</key>
-    <array>
-        <string>_ssh._tcp</string>
-        <string>_sftp-ssh._tcp</string>
-    </array>
+    <string>VVTerm uses your local network to connect to SSH servers.</string>
 
     <!-- Custom fonts -->
     <key>UIAppFonts</key>

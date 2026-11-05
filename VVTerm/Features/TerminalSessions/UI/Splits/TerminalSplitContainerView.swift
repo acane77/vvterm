@@ -48,10 +48,6 @@ struct ServerViewTabActionsKey: FocusedValueKey {
     typealias Value = ServerViewTabActions
 }
 
-struct OpenLocalSSHDiscoveryActionKey: FocusedValueKey {
-    typealias Value = () -> Void
-}
-
 struct ToggleZenModeActionKey: FocusedValueKey {
     typealias Value = () -> Void
 }
@@ -84,11 +80,6 @@ extension FocusedValues {
     var serverViewTabActions: ServerViewTabActions? {
         get { self[ServerViewTabActionsKey.self] }
         set { self[ServerViewTabActionsKey.self] = newValue }
-    }
-
-    var openLocalSSHDiscovery: (() -> Void)? {
-        get { self[OpenLocalSSHDiscoveryActionKey.self] }
-        set { self[OpenLocalSSHDiscoveryActionKey.self] = newValue }
     }
 
     var toggleZenMode: (() -> Void)? {

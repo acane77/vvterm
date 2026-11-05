@@ -38,7 +38,6 @@ struct ConnectionTerminalContainer: View {
     @ObservedObject var fileTabManager: RemoteFileTabManager
     let serverManager: ServerManager
     let fileBrowser: RemoteFileBrowserStore
-    let makeLocalDiscoveryManager: LocalSSHDiscoveryManagerFactory
     let statsDependencies: ServerStatsScreenDependencies
     let terminalSecurityActions: TerminalSecurityActions
     let serverFormDependencies: ServerFormDependencies
@@ -85,7 +84,6 @@ struct ConnectionTerminalContainer: View {
         fileTabManager: RemoteFileTabManager,
         serverManager: ServerManager,
         fileBrowser: RemoteFileBrowserStore,
-        makeLocalDiscoveryManager: @escaping LocalSSHDiscoveryManagerFactory,
         statsDependencies: ServerStatsScreenDependencies,
         terminalSecurityActions: TerminalSecurityActions,
         serverFormDependencies: ServerFormDependencies,
@@ -107,7 +105,6 @@ struct ConnectionTerminalContainer: View {
         self.fileTabManager = fileTabManager
         self.serverManager = serverManager
         self.fileBrowser = fileBrowser
-        self.makeLocalDiscoveryManager = makeLocalDiscoveryManager
         self.statsDependencies = statsDependencies
         self.terminalSecurityActions = terminalSecurityActions
         self.serverFormDependencies = serverFormDependencies

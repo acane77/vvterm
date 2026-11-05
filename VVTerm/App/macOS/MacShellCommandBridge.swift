@@ -16,7 +16,6 @@ enum MacShellCommandID: Equatable {
     case selectNextTab
     case selectTab(Int)
     case performSplit(TerminalSplitCommand)
-    case openLocalDiscovery
 }
 
 struct MacShellCommandSnapshot: Equatable {
@@ -25,7 +24,6 @@ struct MacShellCommandSnapshot: Equatable {
     var activePaneId: UUID?
     var hasTabActions = false
     var hasSplitActions = false
-    var hasLocalDiscovery = false
 
     static let inactive = MacShellCommandSnapshot()
 }
@@ -35,7 +33,6 @@ final class MacShellCommandDispatcher {
     private var ownerId: String?
     private var tabActions: ServerViewTabActions?
     private var splitActions: TerminalSplitActions?
-    private var openLocalDiscovery: (() -> Void)?
 
     func install(
         ownerId: String,
@@ -54,10 +51,6 @@ final class MacShellCommandDispatcher {
         splitActions = nil
     }
 
-    func setLocalDiscovery(_ action: (() -> Void)?) {
-        openLocalDiscovery = action
-    }
-
     func dispatch(_ command: MacShellCommandID) {
         switch command {
         case .openNewTab:
@@ -72,8 +65,6 @@ final class MacShellCommandDispatcher {
             tabActions?.selectIndex(index)
         case .performSplit(let command):
             splitActions?.perform(command)
-        case .openLocalDiscovery:
-            openLocalDiscovery?()
         }
     }
 
@@ -116,11 +107,6 @@ final class MacShellCommandBridge: ObservableObject {
     var activeServerId: UUID? { snapshot.activeServerId }
     var activePaneId: UUID? { snapshot.activePaneId }
 
-    var openLocalDiscovery: (() -> Void)? {
-        guard snapshot.hasLocalDiscovery else { return nil }
-        return { [dispatcher] in dispatcher.dispatch(.openLocalDiscovery) }
-    }
-
     func update(
         ownerId: String,
         serverViewTabActions: ServerViewTabActions?,
@@ -148,11 +134,6 @@ final class MacShellCommandBridge: ObservableObject {
         snapshot.activePaneId = nil
         snapshot.hasTabActions = false
         snapshot.hasSplitActions = false
-    }
-
-    func setLocalDiscovery(_ action: (() -> Void)?) {
-        dispatcher.setLocalDiscovery(action)
-        snapshot.hasLocalDiscovery = action != nil
     }
 }
 #endif

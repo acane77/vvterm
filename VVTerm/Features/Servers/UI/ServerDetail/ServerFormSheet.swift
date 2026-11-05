@@ -42,7 +42,6 @@ struct ServerFormSheet: View {
     @EnvironmentObject private var appLockManager: AppLockManager
     let workspace: Workspace?
     let intent: ServerFormIntent
-    let makeLocalDiscoveryManager: LocalSSHDiscoveryManagerFactory
     let onSave: (Server) -> Void
 
     @Environment(\.dismiss) var dismiss
@@ -55,7 +54,6 @@ struct ServerFormSheet: View {
     @State private var showingCreateWorkspace = false
     @State private var showingAddKeySheet = false
     @State private var programmaticSSHKeyValue: String?
-    @State private var localDiscoveryPresentation: LocalDeviceDiscoveryPresentation?
     @State private var hasAuthorizedSourceAccess: Bool
 
     private let now: @Sendable () -> Date
@@ -75,14 +73,12 @@ struct ServerFormSheet: View {
         workspace: Workspace?,
         intent: ServerFormIntent,
         dependencies: ServerFormDependencies,
-        makeLocalDiscoveryManager: @escaping LocalSSHDiscoveryManagerFactory,
         onSave: @escaping (Server) -> Void
     ) {
         self.serverManager = serverManager
         _stateStore = ObservedObject(wrappedValue: serverManager.stateStore)
         self.workspace = workspace
         self.intent = intent
-        self.makeLocalDiscoveryManager = makeLocalDiscoveryManager
         self.now = dependencies.now
         self.makeID = dependencies.makeID
         remoteSessionBackends = dependencies.remoteSessionBackends
@@ -94,7 +90,6 @@ struct ServerFormSheet: View {
                     repository: dependencies.credentials
                 ),
                 connectionTester: dependencies.connectionTester,
-                wakeOnLANMACAddressResolver: dependencies.wakeOnLANMACAddressResolver,
                 hostKeys: dependencies.hostKeys,
                 saveUseCase: saveUseCase,
                 now: dependencies.now,
@@ -304,9 +299,6 @@ struct ServerFormSheet: View {
         securitySection
         assignmentSection
         notesSection
-        if isEditing {
-            advancedSection
-        }
         errorSection
     }
 
@@ -367,18 +359,6 @@ struct ServerFormSheet: View {
                         form.workspaceID = workspace.id
                     }
                 )
-                .adaptiveSoftScrollEdges()
-            }
-            .sheet(item: $localDiscoveryPresentation) { presentation in
-                LocalDeviceDiscoverySheet(manager: presentation.manager) { discoveredHost in
-                    applyPrefill(
-                        ServerFormPrefill(
-                            name: discoveredHost.displayName,
-                            host: discoveredHost.host,
-                            port: discoveredHost.port
-                        )
-                    )
-                }
                 .adaptiveSoftScrollEdges()
             }
             .limitReachedAlert(.servers, isPresented: serverLimitAlertBinding)
@@ -586,12 +566,6 @@ struct ServerFormSheet: View {
                 #if os(iOS)
                 .textInputAutocapitalization(.never)
                 #endif
-
-            Button {
-                presentLocalDiscovery()
-            } label: {
-                Label(String(localized: "Pick from Local Discovery..."), systemImage: "dot.radiowaves.left.and.right")
-            }
         } header: {
             sectionHeader("Server")
         }
@@ -777,18 +751,6 @@ struct ServerFormSheet: View {
                 #endif
         } header: {
             sectionHeader("Notes")
-        }
-    }
-
-    private var advancedSection: some View {
-        Section {
-            Toggle("Auto Wake-on-LAN", isOn: $form.autoWakeOnLANEnabled)
-                .accessibilityIdentifier("vvterm.serverForm.wakeOnLAN.enabled")
-        } header: {
-            sectionHeader("Advanced")
-                .accessibilityIdentifier("vvterm.serverForm.advanced")
-        } footer: {
-            Text("For servers on the same local network.")
         }
     }
 
@@ -994,18 +956,7 @@ struct ServerFormSheet: View {
                 format: String(localized: "Failed to load key: %@"),
                 message
             )
-        case .wakeOnLANUnavailable:
-            return String(
-                localized: "Could not detect the server's MAC address. Make sure it is online, then try again."
-            )
         }
-    }
-
-    private func presentLocalDiscovery() {
-        guard localDiscoveryPresentation == nil else { return }
-        localDiscoveryPresentation = LocalDeviceDiscoveryPresentation(
-            makeManager: makeLocalDiscoveryManager
-        )
     }
 }
 
